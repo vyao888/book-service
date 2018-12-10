@@ -27,9 +27,31 @@ book-service victoryao$ mvn clean test
 II. The Steps to deploy the book-service (Microservices)
 
 1) Starts the MongoDB if it has not been started (refer to 2) above for running the tests
-2) Deploy the microservice
+
+2) Manually insert book records to mongodb:
+    from the command shell type: mongo
+    > use canoo-book-service
+    > paste the file content from: src/main/resources/books.js
+    > hit return (9 book records should be inserted into the database. Something as the following will get displayed):
+
+    BulkWriteResult({
+    	"writeErrors" : [ ],
+    	"writeConcernErrors" : [ ],
+    	"nInserted" : 9,
+    	"nUpserted" : 0,
+    	"nMatched" : 0,
+    	"nModified" : 0,
+    	"nRemoved" : 0,
+    	"upserted" : [ ]
+    })
+
+
+3) Deploy the microservice
 
 victoryao$ cd book-service
+
 book-service victoryao$ mvn clean bootstrap:run
+
+Now the book-service application should be running and ready to serve the front app
 
 
