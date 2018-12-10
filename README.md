@@ -50,8 +50,20 @@ II. The Steps to deploy the book-service (Microservices)
 
 victoryao$ cd book-service
 
-book-service victoryao$ mvn clean bootstrap:run
+book-service victoryao$ mvn clean spring-boot:run
 
 Now the book-service application should be running and ready to serve the front app
+
+check if disployment is ok by running the following url in your browser:
+
+http://localhost:8888/book/findAllBooks
+
+you will see all books inserted into db "canoo-book-service" previously will get displayed as json collection:
+
+[{"isbn":"1128820655","title":"Effective Java","authors":["Joshua Bloch"],"description":"The 3rd Edition","publishDate":"2017-10-23","price":27.44},{"isbn":"1839855250","title":"Effective Java","authors":["Joshua Bloch"],"description":"The 2rd Edition","publishDate":"2012-10-23","price":37.44},{"isbn":"1758600849","title":"Effective Java","authors":["Joshua Bloch"],"description":"The 1st Edition","publishDate":"2008-10-23","price":47.44},{"isbn":"1801996137","title":"Java 8 in Action","authors":["Raoul-Gabriel Urma","Mario Fusco","Alan Mycroft"],"description":"Lambdas, Streams, and functional-style programming","publishDate":"2014-08-29","price":43.2},{"isbn":"1683908380","title":"Thinking in Java","authors":["Bruce Eckel"],"description":"The 1st Edition","publishDate":"2006-02-10","price":42.76},{"isbn":"1858615848","title":"Thinking in Java","authors":["Bruce Eckel"],"description":"One-off","publishDate":"2017-10-23","price":17.44},{"isbn":"1873537007","title":"Head First Java","authors":["Kathy Sierra","Bert Bates"],"description":"The 2rd Edition","publishDate":"2005-02-19","price":21.63},{"isbn":"1346169336","title":"Java Concurrency in Practice","authors":["Brian Goetz"],"description":"JDK Concurrency Czar, Sun Microsystems","publishDate":"2006-05-10","price":31.99},{"isbn":"1621573012","title":"Java For Dummies","authors":["Barry A. Burd"],"description":"The top-selling beginning Java book","publishDate":"2011-07-16","price":12.20}]
+
+
+
+
 
 
