@@ -33,13 +33,13 @@ Run all the tests
     book-service victoryao$ mvn clean test
 
 
-The Steps to deploy the book-service (Microservices)
+The Steps to deploy the book-service
 
-Starts the MongoDB if it has not been started (refer to 2) above for running the tests
+Starts the MongoDB if it has not been started (refer to above)
 
-Manually insert book records to mongodb:
+Manually insert book records to mongodb from the command shell:
 
-    from the command shell type: mongo
+    victoryao$ mongo
 
     > use canoo-book-service
 
@@ -73,11 +73,11 @@ Manually insert book records to mongodb:
     })
 
 
-Deploy the microservice
+Deploy the microservices
 
     book-service victoryao$ mvn clean spring-boot:run
 
-    Now the book-service application should be running and ready to serve the front app
+    Now the book-service application should be running and ready to serve the RESTFul requests
 
 Check if the the deployment is Ok or Not by running the following url in your browser:
 
