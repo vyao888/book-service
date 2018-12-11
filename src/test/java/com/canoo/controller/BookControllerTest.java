@@ -136,11 +136,15 @@ public class BookControllerTest {
         testMethod = "/findByTitle?title=title2" ;
 
         testNonExistValueWithReturnedList(this.baseUrl + testMethod);
-        testNonExistValueWithReturnedList(this.baseUrl + "/findByTitle?title=");
+        try {
+            testNonExistValueWithReturnedList(this.baseUrl + "/findByTitle?title=");
+            fail();
+        } catch (Exception e) {
+        }
 
     }
 
-    /*
+/*
     @Test
     public void testFindBookWithInvalidTitle_BookServiceExceptionThrown() {
         try {
@@ -148,8 +152,8 @@ public class BookControllerTest {
             fail();
         } catch (BookServiceException e) {
         }
-    }*/
-
+    }
+*/
     @Test
     public void testFindBookByPublishDate() throws Exception {
         String testMethod = "/findByPublishDate?date=" + this.book.getPublishDate().toString();
@@ -161,9 +165,20 @@ public class BookControllerTest {
 
         testMethod = "/findByPublishDate?date=" + LocalDateTime.now().plusDays(1).toString();
         url = this.baseUrl + testMethod;
-        testNonExistValueWithReturnedList(url);
 
-        testNonExistValueWithReturnedList(this.baseUrl + "/findByPublishDate?date=");
+        try {
+            testNonExistValueWithReturnedList(url);
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            testNonExistValueWithReturnedList(this.baseUrl + "/findByPublishDate?date=");
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -220,14 +235,9 @@ public class BookControllerTest {
     }
 
     private List getBooksFromRestCall(String url) {
-        ResponseEntity<List> response = null;
-        try {
-            response = this.restTemplate.getForEntity(url, List.class);
-            log.info(response.toString());
-        } catch (RestClientException e) {
-            log.error(e.getMessage());
-            return null;
-        }
+        ResponseEntity<List> response = this.restTemplate.getForEntity(url, List.class);
+        assertNotNull(response);
+        assertTrue(response.getStatusCode().equals(HttpStatus.OK));
         return response.getBody();
     }
 
