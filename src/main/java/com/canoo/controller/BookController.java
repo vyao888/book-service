@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -44,11 +45,9 @@ public class BookController {
 	}*/
 	
 	@GetMapping("/{isbn}")
-	public Book find(@PathVariable String isbn) {
+	public Optional<Book> find(@PathVariable String isbn) {
 		validate("Book ISBN", isbn);
-		return this.findAll().stream()
-				.filter(e -> e.getIsbn().equalsIgnoreCase(isbn.trim()))
-				.findAny().orElse(null);
+		return this.repository.findById(isbn);
 	}
 	
 	@GetMapping(value = "/findByTitle")
@@ -76,21 +75,21 @@ public class BookController {
 	
 	@PostMapping
 	public Book create(@RequestBody Book book) {
-		Book b = this.find(book.getIsbn());
-		if(b != null) {
+		Optional<Book> o = this.find(book.getIsbn());
+		if(o.isPresent()) {
 			String isbn = getUniqueIsbn();
-			book.setIsbn(isbn);
+			o.get().setIsbn(isbn);
 		}
-		b = this.repository.save(book);
-		log.info(String.format("new Book: %s has been created successfully.", book.toString()));
+		Book b = this.repository.save(book);
+		log.info(String.format("new Book: %s has been created successfully.", b.toString()));
 
 		return b;
 	}
 
 	private String getUniqueIsbn() {
 		String isbn = Book.generateIsbn();
-		Book b = null;
-		while((b = find(isbn)) != null) {
+		Optional<Book> o = null;
+		while((o = find(isbn)).isPresent()) {
 			isbn = Book.generateIsbn();
 		}
 		return isbn;
@@ -111,11 +110,11 @@ public class BookController {
 	@DeleteMapping(value = "/{isbn}")
 	//@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public void delete(@PathVariable String isbn) {
-		Book b = this.find(isbn);
-		if(b == null) {
+		Optional<Book> o = this.find(isbn);
+		if(!o.isPresent()) {
 			log.warn(String.format("Book with the ISBN: %s does not exist.", isbn));
 		} else {
-			this.repository.delete(b);
+			this.repository.delete(o.get());
 			log.info(String.format("The Book with the ISBN %s has been deleted successfully.", isbn));
 		}
 	}
