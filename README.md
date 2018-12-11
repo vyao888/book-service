@@ -3,7 +3,7 @@ A microservice project using Spring Boot, with MongoDB as the backend storage.
 
 The book-service provides CRUD operations on the domain Book via RESTFul APIs (Jason based)
 
-# Checking out and Building
+# Checking out and Building, Running Tests, and the Service Deployment
 
 To check out the project and build from source, do the following:
 
