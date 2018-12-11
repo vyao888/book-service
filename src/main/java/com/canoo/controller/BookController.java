@@ -75,10 +75,9 @@ public class BookController {
 	
 	@PostMapping
 	public Book create(@RequestBody Book book) {
-		Optional<Book> o = this.find(book.getIsbn());
+		Optional<Book> o = this.repository.findById(book.getIsbn());
 		if(o.isPresent()) {
-			String isbn = getUniqueIsbn();
-			o.get().setIsbn(isbn);
+			o.get().setIsbn(getUniqueIsbn());
 		}
 		Book b = this.repository.save(book);
 		log.info(String.format("new Book: %s has been created successfully.", b.toString()));
@@ -88,8 +87,7 @@ public class BookController {
 
 	private String getUniqueIsbn() {
 		String isbn = Book.generateIsbn();
-		Optional<Book> o = null;
-		while((o = find(isbn)).isPresent()) {
+		while(this.repository.findById(isbn).isPresent()) {
 			isbn = Book.generateIsbn();
 		}
 		return isbn;
@@ -97,20 +95,20 @@ public class BookController {
 
 	@PutMapping("/{isbn}")
 	public Book update(@PathVariable String isbn, @RequestBody Book book) {
-		Book r = null;
-		if(this.find(isbn) == null) {
+	    Book b = null;
+		if(!this.repository.findById(isbn).isPresent()) {
 			log.warn(String.format("Book with the ISBN: %s does not exist.", isbn));
 		} else {
-			r = this.repository.save(book);
-			log.info(String.format("The Book: %s has been updated successfully.", book.toString()));
+			b = this.repository.save(book);
+			log.info(String.format("The Book: %s has been updated successfully.", b.toString()));
 		}
-		return r;
+		return b;
 	}
 	
 	@DeleteMapping(value = "/{isbn}")
 	//@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public void delete(@PathVariable String isbn) {
-		Optional<Book> o = this.find(isbn);
+		Optional<Book> o = this.repository.findById(isbn);
 		if(!o.isPresent()) {
 			log.warn(String.format("Book with the ISBN: %s does not exist.", isbn));
 		} else {
