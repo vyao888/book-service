@@ -11,7 +11,7 @@ To check out the project and build from source, do the following:
     cd book-service
     mvn compile
 
-The Java SE 8 is recommended to build the project.
+The Java SE 8 is required to build the project.
 
 The Steps to run the tests for the book-service (Microservices)
 
