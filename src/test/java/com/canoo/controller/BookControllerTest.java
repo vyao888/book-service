@@ -5,6 +5,7 @@ import com.canoo.exception.BookServiceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 
 @RunWith(SpringRunner.class)
@@ -80,7 +80,7 @@ public class BookControllerTest {
 		this.book = createBook();
 	//	this.mockMvc =  standaloneSetup(this.bookController).build();
         this.baseUrl = getBaseUrl(this.port);
-        this.mockMvc.perform(post("/book/create")
+        this.mockMvc.perform(post("/books")
                  .contentType(APPLICATION_JSON)
                  .content(toJson(this.book)))
                  .andDo(print())
@@ -91,7 +91,7 @@ public class BookControllerTest {
 	public void tearDown() throws Exception {
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .delete("/book/delete/" + ISBN)
+                .delete("/books/" + ISBN)
                 .with(user("admin").roles("ADMIN"))
               //  .with(user("user").roles("USER"))
                 .accept(MediaType.APPLICATION_JSON);
@@ -103,7 +103,7 @@ public class BookControllerTest {
 
 	@Test
     public void testFindAllBooks() throws Exception {
-        String url = this.baseUrl + "/findAllBooks";
+        String url = this.baseUrl;
         log.info(String.format("Test url: %s", url));
         List list = getBooksFromRestCall(url);
         assertNotNull("Should return non-null list.", list);
@@ -112,8 +112,8 @@ public class BookControllerTest {
 
     @Test
     public void testFindBookByIsbn() throws Exception {
-	    String testMethod = "findBook";
-        String url = getTestUrl(this.baseUrl, testMethod,book.getIsbn());
+	    String testMethod = "";
+        String url = this.baseUrl + "/" + book.getIsbn();
         log.info(String.format("Test url: %s", url));
         Book o = getBookFromRestCall(url);
         assertNotNull("Should return non-null Book.",o);
@@ -126,28 +126,44 @@ public class BookControllerTest {
 
     @Test
     public void testFindBookByTitle() throws Exception {
-        String testMethod = "findBookByTitle";
-        String url = getTestUrl(this.baseUrl, testMethod, book.getTitle());
+        String testMethod = "/findByTitle?title=" + book.getTitle();
+        String url = this.baseUrl + testMethod;
         log.info(String.format("Test url: %s", url));
         List list = getBooksFromRestCall(url);
         assertNotNull("Should return non-null Book.",list);
         assertTrue(list.size() > 0);
 
-        testNonExistValueWithReturnedList(testMethod, "title2");
-        testNonExistValueWithReturnedList(testMethod, "");
+        testMethod = "/findByTitle?title=title2" ;
+
+        testNonExistValueWithReturnedList(this.baseUrl + testMethod);
+        testNonExistValueWithReturnedList(this.baseUrl + "/findByTitle?title=");
+
     }
+
+    /*
+    @Test
+    public void testFindBookWithInvalidTitle_BookServiceExceptionThrown() {
+        try {
+            testNonExistValueWithReturnedList(this.baseUrl + "/findByTitle?title=");
+            fail();
+        } catch (BookServiceException e) {
+        }
+    }*/
 
     @Test
     public void testFindBookByPublishDate() throws Exception {
-        String testMethod = "findBookByPublishDate";
-        String url = getTestUrl(this.baseUrl, testMethod, this.book.getPublishDate().toString());
+        String testMethod = "/findByPublishDate?date=" + this.book.getPublishDate().toString();
+        String url = this.baseUrl + testMethod;
         log.info(String.format("Test url: %s", url));
         List list = getBooksFromRestCall(url);
         assertNotNull("Should return non-null Book.",list);
         assertTrue(list.size() > 0);
 
-        testNonExistValueWithReturnedList(testMethod, LocalDateTime.now().plusDays(1).toString());
-        testNonExistValueWithReturnedList(testMethod, "");
+        testMethod = "/findByPublishDate?date=" + LocalDateTime.now().plusDays(1).toString();
+        url = this.baseUrl + testMethod;
+        testNonExistValueWithReturnedList(url);
+
+        testNonExistValueWithReturnedList(this.baseUrl + "/findByPublishDate?date=");
     }
 
 
@@ -156,19 +172,19 @@ public class BookControllerTest {
 	    final String title = "title2";
 	    Book b = createBook(title);
 	    b.setIsbn(ISBN);
-        this.restTemplate.put(baseUrl + "/update", b);
+        this.restTemplate.put(baseUrl + "/" + ISBN, b);
         assertTrue(true);
     }
 
     @Test
     public void testDeleteNonExistBook() throws Exception {
-        this.restTemplate.delete(baseUrl + "/delete/" + "isbn1");
+        this.restTemplate.delete(baseUrl + "/isbn1");
         // show warning message but does not throw exceptions
         assertTrue(true);
     }
 
-    private void testNonExistValueWithReturnedList(String method, String pathVar) {
-        String url = createUrlWithNonExistingValue(method, pathVar);
+    private void testNonExistValueWithReturnedList(String url) {
+        log.info(String.format("Test url: %s", url));
         List list = getBooksFromRestCall(url);
         if(list != null) {
             assertTrue("Should return null Book list.",list.isEmpty());
@@ -182,30 +198,24 @@ public class BookControllerTest {
     }
 
     private String createUrlWithNonExistingValue(String method, String pathVar) {
-        return String.format("%s/%s/%s", this.baseUrl, method, pathVar);
+        if(StringUtils.isBlank(method)) {
+            return String.format("%s/%s", baseUrl, pathVar);
+        } else {
+            return String.format("%s/%s/%s", this.baseUrl, method, pathVar);
+        }
     }
 
     private Book getBookFromRestCall(String url) {
-        ResponseEntity<Book> response = null;
-        try {
-            response = restTemplate.getForEntity(url, Book.class);
-        } catch (RestClientException e) {
-            log.error(e.getMessage());
-            return null;
-        }
+        ResponseEntity<Book> response = restTemplate.getForEntity(url, Book.class);
+        assertNotNull(response);
         assertTrue(response.getStatusCode().equals(HttpStatus.OK));
         return response.getBody();
     }
 
     private List getBooksFromRestCall(String url, Object obj) {
-        ResponseEntity<List> response = null;
-        try {
-            response = this.restTemplate.getForEntity(url, List.class, obj);
-            log.info(response.toString());
-        } catch (RestClientException e) {
-            log.error(e.getMessage());
-            return null;
-        }
+        ResponseEntity<List> response = this.restTemplate.getForEntity(url, List.class, obj);
+        assertNotNull(response);
+        assertTrue(response.getStatusCode().equals(HttpStatus.OK));
         return response.getBody();
     }
 
@@ -255,11 +265,15 @@ public class BookControllerTest {
 
 
 	private static String getBaseUrl(int port) {
-        return String.format("http://localhost:%d/book", port);
+        return String.format("http://localhost:%d/books", port);
     }
 
     private static String getTestUrl(String baseUrl, String method, String pathVar) {
-        return String.format("%s/%s/%s", baseUrl, method, pathVar);
+	    if(StringUtils.isBlank(method)) {
+	        return String.format("%s/%s", baseUrl, pathVar);
+        } else {
+            return String.format("%s/%s/%s", baseUrl, method, pathVar);
+        }
     }
 
 }
