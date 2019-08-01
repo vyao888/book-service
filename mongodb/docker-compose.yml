@@ -8,9 +8,7 @@ services:
       - "mongodata:/data/db"
     networks:
       - network1
-
 volumes:
   mongodata:
-
 networks:
   network1:
